@@ -53,7 +53,22 @@ namespace RahkaranDatabases
                     })
                 .Prepend(backupFile);
 
+            KillConnections(toDatabaseName);
             GetDatabase().Execute(cmd, args.ToArray());
+        }
+
+        public void KillConnections(string dbName)
+        {
+            var cmd = @"
+DECLARE @kill varchar(8000) = '';  
+SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'  
+FROM sys.dm_exec_sessions
+WHERE database_id  = db_id(@0)
+
+EXEC(@kill);";
+            var db = GetDatabase();
+            db.EnableNamedParams = false;
+            db.Execute(cmd, dbName);
         }
 
         private string GetSuffix(string fileGroup)
