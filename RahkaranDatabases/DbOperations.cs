@@ -38,22 +38,22 @@ namespace RahkaranDatabases
                 new { backupPath }).ToList();
         }
 
-        public void RestoreRahkaranDatabase(string backupFile, string toDatabaseName, string toOutputFolder)
+        public void RestoreRahkaranDatabase(string backupFile, string databaseName, string outputFolder)
         {
             var databaseFileList = GetDatabaseFileListFromBackup(backupFile);
             int paramIndex = 1;
-            var cmd = $"RESTORE DATABASE [{toDatabaseName}] FROM DISK = @0 WITH FILE = 1,\r\n" +
+            var cmd = $"RESTORE DATABASE [{databaseName}] FROM DISK = @0 WITH FILE = 1,\r\n" +
                 string.Join(",\r\n", databaseFileList.Select(df => $"MOVE @{paramIndex++} TO @{paramIndex++}"));
             var args =  databaseFileList
                 .SelectMany(df =>
                     new string[]
                     {
                         df.LogicalName,
-                        Path.Combine(toOutputFolder, toDatabaseName + GetSuffix(df.FileGroupName))
+                        Path.Combine(outputFolder, databaseName + GetSuffix(df.FileGroupName))
                     })
                 .Prepend(backupFile);
 
-            KillConnections(toDatabaseName);
+            KillConnections(databaseName);
             GetDatabase().Execute(cmd, args.ToArray());
         }
 
