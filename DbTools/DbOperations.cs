@@ -6,17 +6,20 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Serilog;
 
 namespace DbTools
 {
     public class DbOperations : IDisposable
     {
         IDbConnection _connection;
+        private readonly ILogger _logger;
         private bool _disposedValue;
 
-        public DbOperations(IDbConnection connection)
+        public DbOperations(IDbConnection connection, ILogger logger)
         {
             _connection = connection;
+            _logger = logger;
         }
 
         private void OpenConnection()
@@ -44,7 +47,7 @@ namespace DbTools
             int paramIndex = 1;
             var cmd = $"RESTORE DATABASE [{databaseName}] FROM DISK = @0 WITH FILE = 1,\r\n" +
                 string.Join(",\r\n", databaseFileList.Select(df => $"MOVE @{paramIndex++} TO @{paramIndex++}"));
-            var args =  databaseFileList
+            var args = databaseFileList
                 .SelectMany(df =>
                     new string[]
                     {
@@ -54,11 +57,18 @@ namespace DbTools
                 .Prepend(backupFile);
 
             KillConnections(databaseName);
+
+            _logger.Information("Restoring\r\n  Backup file: {backupFile}\r\n" +
+                "  Database: {dbName}\r\n  Database files put in: '{folder}'",
+                backupFile, databaseName, outputFolder);
+
             GetDatabase().Execute(cmd, args.ToArray());
         }
 
         public void KillConnections(string dbName)
         {
+            _logger.Information("Killing existing connections to '{dbName}'.", dbName);
+
             var cmd = @"
 DECLARE @kill varchar(8000) = '';  
 SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'  
