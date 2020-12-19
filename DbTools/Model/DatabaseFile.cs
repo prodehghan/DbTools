@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RahkaranDatabases.Model
+namespace DbTools.Model
 {
     public class DatabaseFile
     {

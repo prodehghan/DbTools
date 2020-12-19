@@ -1,5 +1,5 @@
 ﻿using PetaPoco;
-using RahkaranDatabases.Model;
+using DbTools.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace RahkaranDatabases
+namespace DbTools
 {
     public class DbOperations : IDisposable
     {
