@@ -25,13 +25,15 @@ namespace RahkaranDatabases
                 _connection.Open();
         }
 
-        public IReadOnlyCollection<DatabaseFile> GetDatabaseFileListFromBackup(string backupPath)
+        private Database GetDatabase()
         {
             OpenConnection();
+            return new Database(_connection) { EnableAutoSelect = false };
+        }
 
-            var db = new Database(_connection);
-            db.EnableAutoSelect = false;
-            return db.Query<DatabaseFile>(
+        public IReadOnlyCollection<DatabaseFile> GetDatabaseFileListFromBackup(string backupPath)
+        {
+            return GetDatabase().Query<DatabaseFile>(
                 "RESTORE FILELISTONLY FROM DISK = @backupPath",
                 new { backupPath }).ToList();
         }
@@ -51,8 +53,7 @@ namespace RahkaranDatabases
                     })
                 .Prepend(backupFile);
 
-            OpenConnection();
-            int result = new Database(_connection).Execute(cmd, args.ToArray());
+            GetDatabase().Execute(cmd, args.ToArray());
         }
 
         private string GetSuffix(string fileGroup)
