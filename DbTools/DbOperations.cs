@@ -59,7 +59,7 @@ namespace DbTools
             KillConnections(databaseName);
 
             _logger.Information("Restoring\r\n  Backup file: {backupFile}\r\n" +
-                "  Database: {dbName}\r\n  Database files put in: '{folder}'",
+                "  Database: {dbName}\r\n  Database files put in: {folder}",
                 backupFile, databaseName, outputFolder);
 
             GetDatabase().Execute(cmd, args.ToArray());
