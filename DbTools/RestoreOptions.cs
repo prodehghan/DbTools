@@ -2,7 +2,7 @@
 
 namespace DbTools
 {
-    [Verb("restore", isDefault: true, HelpText = "Restores a database backup.")]
+    [Verb("restore", HelpText = "Restores a database backup.")]
     public class RestoreOptions
     {
         public RestoreOptions(string server, string user, string password, string backupFile, string database, string outputFolder)
