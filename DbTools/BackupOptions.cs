@@ -6,7 +6,6 @@ namespace DbTools
     public class BackupOptions : DbOptionsBase
     {
         public BackupOptions()
-            : base(null, null, null)
         {
         }
 
@@ -20,11 +19,11 @@ namespace DbTools
         }
 
         [Option('d', Required = true, HelpText = "The name of the database to backup.")]
-        public string Database { get; }
+        public string Database { get; set; }
         [Option('b', Required = true, HelpText = "Path to the backup file to create or append to.")]
-        public string BackupFile { get; }
+        public string BackupFile { get; set; }
         [Option('c', Required = false, HelpText = "Compression settings - default: server settings, 'y' or 'yes' or '1': compress, 'n' or 'no' or '0': do not compress")]
-        public string Compression { get; }
+        public string Compression { get; set; }
         [Option('t', Required = false, Default = BackupType.CopyOnly, HelpText = "Backup type - 'copyOnly' (default), 'full', 'differential'")]
         public BackupType Type { get; set; }
     }
