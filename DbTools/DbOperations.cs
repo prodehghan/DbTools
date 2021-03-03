@@ -65,6 +65,38 @@ namespace DbTools
             GetDatabase().Execute(cmd, args.ToArray());
         }
 
+        public void BackupDatabase(string databaseName, string backupFilePath, bool? compress, BackupType backupType)
+        {
+            List<string> withOptions = new List<string>();
+            switch(backupType)
+            {
+                case BackupType.Full:
+                    break;
+                case BackupType.Differential:
+                    withOptions.Add("DIFFERENTIAL");
+                    break;
+                case BackupType.CopyOnly:
+                    withOptions.Add("COPY_ONLY");
+                    break;
+            }
+            if (compress != null)
+                withOptions.Add((compress.Value ? "" : "NO_") + "COMPRESSION");
+
+            var cmd = $"BACKUP DATABASE [{databaseName}] TO DISK = @0";
+            if(withOptions.Count > 0)
+            {
+                cmd += "\r\nWITH " + string.Join(", ", withOptions);
+            }
+
+            _logger.Information("Backup\r\n  Database: {databaseName}\r\n" +
+                "  To file: {toFile}\r\n  Compress: {compress}\r\n  Type: {type}",
+                databaseName, backupFilePath,
+                compress.HasValue ? (compress.Value ? "Yes" : "No") : "Default",
+                backupType);
+
+            GetDatabase().Execute(cmd, backupFilePath);
+        }
+
         public void KillConnections(string dbName)
         {
             _logger.Information("Killing existing connections to '{dbName}'.", dbName);

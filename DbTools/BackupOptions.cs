@@ -27,6 +27,22 @@ namespace DbTools
         public string Compression { get; set; }
         [Option('t', Required = false, Default = BackupType.CopyOnly, HelpText = "Backup type - 'copyOnly' (default), 'full', 'differential'")]
         public BackupType Type { get; set; }
+
+        public bool? ParsedCompression
+        {
+            get
+            {
+
+                if (string.IsNullOrWhiteSpace(Compression))
+                    return null;
+                var c = Compression.Trim().ToLower();
+                if (c == "y" || c == "yes")
+                    return true;
+                if (c == "n" || c == "no")
+                    return false;
+                throw new ArgumentException("Invalid value for `Compression` property: " + Compression);
+            }
+        }
     }
 
     public enum BackupType

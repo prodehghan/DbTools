@@ -35,23 +35,32 @@ namespace DbTools
             Log.CloseAndFlush();
         }
 
-        private static void Backup(BackupOptions o, ILogger log)
+        private static void Backup(BackupOptions options, ILogger logger)
         {
-            throw new NotImplementedException();
+            var connection = CreateConnection(options);
+            new DbOperations(connection, logger)
+                .BackupDatabase(options.Database, options.ToFile, options.ParsedCompression, options.Type);
+
+            logger.Information("Done.");
         }
 
         static void Restore(RestoreOptions options, ILogger logger)
+        {
+            var connection = CreateConnection(options);
+            new DbOperations(connection, logger)
+                .RestoreDatabase(options.BackupFile, options.Database, options.OutputFolder);
+
+            logger.Information("Done.");
+        }
+
+        private static SqlConnection CreateConnection(DbOptionsBase options)
         {
             string auth;
             if (options.User != null)
                 auth = $"user={options.User};password={options.Password}";
             else
                 auth = "integrated security=SSPI";
-            var connection = new SqlConnection($"server={options.Server};database=master;{auth}");
-            new DbOperations(connection, logger)
-                .RestoreDatabase(options.BackupFile, options.Database, options.OutputFolder);
-
-            logger.Information("Done.");
+            return new SqlConnection($"server={options.Server};database=master;{auth}");
         }
     }
 }
