@@ -18,8 +18,14 @@ namespace DbTools
 
             try
             {
-                var parsed = Parser.Default.ParseArguments<RestoreOptions, object>(args);
+                var parser = new Parser(config =>
+                {
+                    config.HelpWriter = Console.Error;
+                    config.CaseInsensitiveEnumValues = true;
+                });
+                var parsed = parser.ParseArguments<RestoreOptions, BackupOptions>(args);
                 parsed.WithParsed<RestoreOptions>(o => Restore(o, log));
+                parsed.WithParsed<BackupOptions>(o => Backup(o, log));
             }
             catch (Exception ex)
             {
@@ -27,6 +33,11 @@ namespace DbTools
             }
 
             Log.CloseAndFlush();
+        }
+
+        private static void Backup(BackupOptions o, ILogger log)
+        {
+            throw new NotImplementedException();
         }
 
         static void Restore(RestoreOptions options, ILogger logger)
