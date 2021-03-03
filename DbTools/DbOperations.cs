@@ -41,7 +41,7 @@ namespace DbTools
                 new { backupPath }).ToList();
         }
 
-        public void RestoreRahkaranDatabase(string backupFile, string databaseName, string outputFolder)
+        public void RestoreDatabase(string backupFile, string databaseName, string outputFolder)
         {
             var databaseFileList = GetDatabaseFileListFromBackup(backupFile);
             int paramIndex = 1;

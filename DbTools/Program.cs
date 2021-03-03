@@ -38,7 +38,7 @@ namespace DbTools
                 auth = "integrated security=SSPI";
             var connection = new SqlConnection($"server={options.Server};database=master;{auth}");
             new DbOperations(connection, logger)
-                .RestoreRahkaranDatabase(options.BackupFile, options.Database, options.OutputFolder);
+                .RestoreDatabase(options.BackupFile, options.Database, options.OutputFolder);
 
             logger.Information("Done.");
         }
