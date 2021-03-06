@@ -15,6 +15,7 @@ namespace DbTools
         IDbConnection _connection;
         private readonly ILogger _logger;
         private bool _disposedValue;
+        private Database _database;
 
         public DbOperations(IDbConnection connection, ILogger logger)
         {
@@ -31,7 +32,7 @@ namespace DbTools
         private Database GetDatabase()
         {
             OpenConnection();
-            return new Database(_connection) { EnableAutoSelect = false };
+            return _database ??= new Database(_connection) { EnableAutoSelect = false };
         }
 
         public IReadOnlyCollection<DatabaseFile> GetDatabaseFileListFromBackup(string backupPath)
