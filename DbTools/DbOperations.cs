@@ -42,6 +42,12 @@ namespace DbTools
                 new { backupPath }).ToList();
         }
 
+        public bool DatabaseExists(string databaseName)
+        {
+            return GetDatabase().Query<int>(
+                "SELECT ISNULL(DB_ID(@0), -1)", databaseName).First() >= 0;
+        }
+
         public void RestoreDatabase(string backupFile, string databaseName, string outputFolder)
         {
             var databaseFileList = GetDatabaseFileListFromBackup(backupFile);
@@ -57,10 +63,15 @@ namespace DbTools
                     })
                 .Prepend(backupFile);
 
-            KillConnections(databaseName);
+            if(DatabaseExists(databaseName))
+            {
+                _logger.Warning("Restoring to existing database: {database}", databaseName);
+                KillConnections(databaseName);
+            }
+
 
             _logger.Information("Restoring\r\n  Backup file: {backupFile}\r\n" +
-                "  Database: {dbName}\r\n  Database files put in: {folder}",
+                "  Database: {database}\r\n  Database files put in: {folder}",
                 backupFile, databaseName, outputFolder);
 
             GetDatabase().Execute(cmd, args.ToArray());
@@ -100,7 +111,7 @@ namespace DbTools
 
         public void KillConnections(string dbName)
         {
-            _logger.Information("Killing existing connections to '{dbName}'.", dbName);
+            _logger.Information("Killing existing connections to '{dbName}'", dbName);
 
             var cmd = @"
 DECLARE @kill varchar(8000) = '';  
