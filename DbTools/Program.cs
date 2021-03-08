@@ -8,7 +8,7 @@ namespace DbTools
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var log = new LoggerConfiguration()
                 .WriteTo.Console()
@@ -23,34 +23,42 @@ namespace DbTools
                     config.HelpWriter = Console.Error;
                     config.CaseInsensitiveEnumValues = true;
                 });
-                var parsed = parser.ParseArguments<RestoreOptions, BackupOptions>(args);
-                parsed.WithParsed<RestoreOptions>(o => Restore(o, log));
-                parsed.WithParsed<BackupOptions>(o => Backup(o, log));
+                return parser.ParseArguments<RestoreOptions, BackupOptions>(args)
+                    .MapResult(
+                        (RestoreOptions o) => Restore(o, log),
+                        (BackupOptions o) => Backup(o, log),
+                        err => 1
+                    );
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Something went wrong.");
+                return 2;
             }
-
-            Log.CloseAndFlush();
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
-        private static void Backup(BackupOptions options, ILogger logger)
+        private static int Backup(BackupOptions options, ILogger logger)
         {
             var connection = CreateConnection(options);
             new DbOperations(connection, logger)
                 .BackupDatabase(options.Database, options.ToFile, options.ParsedCompression, options.Type);
 
             logger.Information("Done.");
+            return 0;
         }
 
-        static void Restore(RestoreOptions options, ILogger logger)
+        static int Restore(RestoreOptions options, ILogger logger)
         {
             var connection = CreateConnection(options);
             new DbOperations(connection, logger)
                 .RestoreDatabase(options.BackupFile, options.Database, options.OutputFolder);
 
             logger.Information("Done.");
+            return 0;
         }
 
         private static SqlConnection CreateConnection(DbOptionsBase options)
