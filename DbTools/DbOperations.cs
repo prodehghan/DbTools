@@ -32,14 +32,16 @@ namespace DbTools
         private Database GetDatabase()
         {
             OpenConnection();
-            return _database ??= new Database(_connection) { EnableAutoSelect = false };
+            _database ??= new Database(_connection) {EnableAutoSelect = false};
+            _database.CommandTimeout = 600;
+            return _database;
         }
 
         public IReadOnlyCollection<DatabaseFile> GetDatabaseFileListFromBackup(string backupPath)
         {
             return GetDatabase().Query<DatabaseFile>(
                 "RESTORE FILELISTONLY FROM DISK = @backupPath",
-                new { backupPath }).ToList();
+                new {backupPath}).ToList();
         }
 
         public bool DatabaseExists(string databaseName)
@@ -53,7 +55,7 @@ namespace DbTools
             var databaseFileList = GetDatabaseFileListFromBackup(backupFile);
             int paramIndex = 1;
             var cmd = $"RESTORE DATABASE [{databaseName}] FROM DISK = @0 WITH FILE = 1,\r\n" +
-                string.Join(",\r\n", databaseFileList.Select(df => $"MOVE @{paramIndex++} TO @{paramIndex++}"));
+                      string.Join(",\r\n", databaseFileList.Select(df => $"MOVE @{paramIndex++} TO @{paramIndex++}"));
             var args = databaseFileList
                 .SelectMany(df =>
                     new string[]
@@ -63,7 +65,7 @@ namespace DbTools
                     })
                 .Prepend(backupFile);
 
-            if(DatabaseExists(databaseName))
+            if (DatabaseExists(databaseName))
             {
                 _logger.Warning("Restoring to existing database: {database}", databaseName);
                 KillConnections(databaseName);
@@ -71,7 +73,7 @@ namespace DbTools
 
 
             _logger.Information("Restoring\r\n  Backup file: {backupFile}\r\n" +
-                "  Database: {database}\r\n  Database files put in: {folder}",
+                                "  Database: {database}\r\n  Database files put in: {folder}",
                 backupFile, databaseName, outputFolder);
 
             GetDatabase().Execute(cmd, args.ToArray());
@@ -80,7 +82,7 @@ namespace DbTools
         public void BackupDatabase(string databaseName, string backupFilePath, bool? compress, BackupType backupType)
         {
             List<string> withOptions = new List<string>();
-            switch(backupType)
+            switch (backupType)
             {
                 case BackupType.Full:
                     break;
@@ -91,17 +93,18 @@ namespace DbTools
                     withOptions.Add("COPY_ONLY");
                     break;
             }
+
             if (compress != null)
                 withOptions.Add((compress.Value ? "" : "NO_") + "COMPRESSION");
 
             var cmd = $"BACKUP DATABASE [{databaseName}] TO DISK = @0";
-            if(withOptions.Count > 0)
+            if (withOptions.Count > 0)
             {
                 cmd += "\r\nWITH " + string.Join(", ", withOptions);
             }
 
             _logger.Information("Backup\r\n  Database: {databaseName}\r\n" +
-                "  To file: {toFile}\r\n  Compress: {compress}\r\n  Type: {type}",
+                                "  To file: {toFile}\r\n  Compress: {compress}\r\n  Type: {type}",
                 databaseName, backupFilePath,
                 compress.HasValue ? (compress.Value ? "Yes" : "No") : "Default",
                 backupType);
