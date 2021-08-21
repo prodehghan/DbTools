@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.IO;
 using CommandLine;
 using Serilog;
+using Serilog.Core;
 
 namespace DbTools
 {
@@ -68,7 +69,8 @@ namespace DbTools
                 auth = $"user={options.User};password={options.Password}";
             else
                 auth = "integrated security=SSPI";
-            return new SqlConnection($"server={options.Server};database=master;{auth}");
+            return new SqlConnection($"server={options.Server};database=master;{auth};connection timeout=600;");
         }
+
     }
 }
